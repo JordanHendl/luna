@@ -1,0 +1,8 @@
+#pragma once
+#include <string_view>
+namespace luna {
+namespace cfg {
+  auto initialize(std::string_view db_path) -> void;
+  auto shutdown() -> void;
+}
+}

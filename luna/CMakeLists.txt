@@ -1,0 +1,10 @@
+add_subdirectory(core)
+add_subdirectory(config)
+add_subdirectory(io)
+add_subdirectory(graphics)
+add_subdirectory(nodes)
+add_subdirectory(plugin)
+
+# add_subdirectory(node)
+add_subdirectory(benchmark)
+add_subdirectory(test)
