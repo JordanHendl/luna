@@ -48,7 +48,9 @@ auto Scheduler::stop(std::string_view node_name = "") -> void {
 }
 
 auto Scheduler::tick() -> void {
-
+  for(auto& node : this->m_nodes) {
+    node.second.update();
+  }
 }
 
 //std::unordered_map<std::string, Node> m_nodes;

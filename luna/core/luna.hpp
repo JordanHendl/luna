@@ -1,4 +1,5 @@
 #pragma once
+#include "luna/core/engine.hpp"
 //#include "luna/core/asset_manager.h"
 //#include "luna/node/node.h"
 //#include "luna/node/scene.h"

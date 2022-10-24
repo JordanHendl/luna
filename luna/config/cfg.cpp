@@ -1,6 +1,7 @@
 #include "luna/io/json.hpp"
 #include "luna/config/cfg,hpp"
 #include "luna/config/bus.hpp"
+#include "luna/log/log.hpp"
 #include <fstream>
 #include <filesystem>
 using json = nlohmann::json;
@@ -47,7 +48,7 @@ namespace cfg {
           handle(val);
         }
         
-        std::cout <<  concatenated_str << " : " << *token << std::endl;
+        log_debug("Configuration parsing pair <", concatenated_str, ", ", *token, ">");
       }
     }
   }

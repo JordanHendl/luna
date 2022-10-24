@@ -5,6 +5,7 @@
 #include "luna/graphics/vulkan/error.hpp"
 #include "luna/graphics/types.hpp"
 #include "luna/io/dlloader.hpp"
+#include "luna/log/log.hpp"
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.hpp>
 #include <vector>
@@ -131,6 +132,7 @@ inline auto create_image(gfx::ImageInfo& in_info, unsigned char*) -> int32_t {
   auto index = luna::vulkan::find_valid_entry(res.images);
   auto& image = res.images[index];
 
+  luna::log_debug("Vulkan -> Creating image on gpu ", in_info.gpu, " with width ", in_info.width, " and height ", in_info.height);
   info.extent = vk::Extent3D{static_cast<unsigned>(in_info.width), static_cast<unsigned>(in_info.height)};
   info.arrayLayers = in_info.layers;
   info.format = luna::vulkan::convert(in_info.format);

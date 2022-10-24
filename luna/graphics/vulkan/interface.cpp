@@ -3,9 +3,8 @@
 #include "luna/error/error.hpp"
 #include "luna/graphics/types.hpp"
 #include "luna/io/dlloader.hpp"
+#include "luna/log/log.hpp"
 #include <iostream>
-
-
 
 namespace luna {
 namespace vulkan {
@@ -52,11 +51,11 @@ auto make_devices() -> void {
 }
 
 LUNA_C_API auto initialize() -> void {
-  std::cout << "Initializing vulkan implementation..." << std::endl;
+  luna::log_debug("Vulkan -> Initializing Luna Implementation!");
   luna::vulkan::make_devices();
 
   for(auto& dev : luna::vulkan::global_resources().devices) {
-    std::cout << "Gpu found: " << dev.properties.deviceName.data() << std::endl;
+    luna::log_debug("Vulkan -> GPU Found: ", dev.properties.deviceName.data());
   }
 }
 
@@ -66,7 +65,8 @@ LUNA_C_API auto make_vertex_buffer(int gpu, size_t size) -> int32_t {
   auto alloc_info = VmaAllocationCreateInfo{};
   auto index = luna::vulkan::find_valid_entry(res.buffers);
   auto& buffer = res.buffers[index];
-
+  
+  luna::log_debug("Vulkan -> Creating vertex buffer on gpu ", gpu, " with size ", size);
   alloc_info.usage = VMA_MEMORY_USAGE_AUTO;
   info.size = size;
   info.usage = vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eVertexBuffer;
@@ -86,6 +86,7 @@ LUNA_C_API auto make_uniform_buffer(int gpu, size_t size) -> int32_t {
   auto index = luna::vulkan::find_valid_entry(res.buffers);
   auto& buffer = res.buffers[index];
 
+  luna::log_debug("Vulkan -> Creating uniform buffer on gpu ", gpu, " with size ", size);
   alloc_info.usage = VMA_MEMORY_USAGE_AUTO;
   info.size = size;
   info.usage = vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eStorageBuffer;
@@ -104,6 +105,8 @@ LUNA_C_API auto make_mappable_buffer(int gpu, size_t size) -> int32_t {
   auto alloc_info = VmaAllocationCreateInfo{};
   auto index = luna::vulkan::find_valid_entry(res.buffers);
   auto& buffer = res.buffers[index];
+
+  luna::log_debug("Vulkan -> Creating mappable buffer on gpu ", gpu, " with size ", size);
   buffer.valid = true;
   buffer.gpu = gpu;
   alloc_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
@@ -122,6 +125,8 @@ LUNA_C_API auto destroy_buffer(int32_t handle) -> void {
   auto& res  = luna::vulkan::global_resources();
   auto& buffer = res.buffers[handle];
   auto c_buffer = static_cast<VkBuffer>(buffer.buffer);
+
+  luna::log_debug("Vulkan -> Creating destroying buffer ", handle);
   vmaDestroyBuffer(res.allocators[buffer.gpu], c_buffer, buffer.alloc);
   buffer.valid = false;
 }

@@ -37,5 +37,10 @@ auto initialize() -> void {
 
 auto shutdown() -> void {
 }
+
+auto tick() -> void {
+  auto& cfg = config();
+  cfg.scheduler.tick();
+}
 }
 }

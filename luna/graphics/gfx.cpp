@@ -35,15 +35,15 @@ namespace gfx {
       //TODO: Make this ifdef and have a windows version.
       auto lib_path = cfg.db_location + std::string("/backend/libluna_vulkan.so");
       dlloader.load(lib_path.c_str());
-      imp.initialize = dlloader.symbol("initialize");
-      imp.make_vertex_buffer = dlloader.symbol("make_vertex_buffer");
-      imp.make_uniform_buffer = dlloader.symbol("make_uniform_buffer");
-      imp.make_mappable_buffer = dlloader.symbol("make_mappable_buffer");
-      imp.destroy_buffer = dlloader.symbol("destroy_buffer");
+      imp.system.initialize = dlloader.symbol("initialize");
+      imp.buffer.make_vertex = dlloader.symbol("make_vertex_buffer");
+      imp.buffer.make_uniform = dlloader.symbol("make_uniform_buffer");
+      imp.buffer.make_mappable = dlloader.symbol("make_mappable_buffer");
+      imp.buffer.destroy = dlloader.symbol("destroy_buffer");
 
-      imp.make_image = dlloader.symbol("make_image");
-      imp.destroy_image = dlloader.symbol("destroy_image");
-      imp.initialize();
+      imp.image.make = dlloader.symbol("make_image");
+      imp.image.destroy = dlloader.symbol("destroy_image");
+      imp.system.initialize();
     }
   }
 }

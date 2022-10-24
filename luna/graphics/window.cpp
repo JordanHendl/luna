@@ -1,5 +1,6 @@
 #include "luna/graphics/window.hpp"
 #include "luna/error/error.hpp"
+#include "luna/config/bus.hpp"
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <string>
@@ -9,7 +10,18 @@ namespace gfx {
 
 struct Window::WindowData {
   SDL_Window* m_window = nullptr;
+  luna::cfg::Bus bus;
 };
+
+Window::Window() {
+  this->m_data = std::make_unique<Window::WindowData>();
+  auto info = WindowInfo();
+  this->m_data->m_window =
+      (SDL_CreateWindow(info.title.c_str(), 0, 0, info.width, info.height,
+                        SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN));
+
+  this->update(info);
+}
 
 Window::Window(WindowInfo info) {
   this->m_data = std::make_unique<Window::WindowData>();

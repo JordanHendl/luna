@@ -3,3 +3,4 @@ set(testnode_files
 )
 
 add_library(usertestnode SHARED ${testnode_files})
+target_link_libraries(usertestnode luna)

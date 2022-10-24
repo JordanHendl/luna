@@ -3,3 +3,4 @@ set(rendernode_files
 )
 
 add_library(rendernode SHARED ${rendernode_files})
+target_link_libraries(rendernode luna)
