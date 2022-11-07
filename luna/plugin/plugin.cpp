@@ -32,7 +32,6 @@ auto request_config() -> void {
 auto initialize() -> void {
   auto& cfg = config();
   cfg.scheduler = std::move(Scheduler(cfg.plugin_location));
-  for(auto& node : cfg.nodes_to_load) std::cout << node << std::endl;
 }
 
 auto shutdown() -> void {

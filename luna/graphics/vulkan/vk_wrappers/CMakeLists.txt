@@ -1,5 +1,4 @@
 set(vulkan_impl_files
-  command_buffer.cpp
   device.cpp
   instance.cpp
   swapchain.cpp

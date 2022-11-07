@@ -4,12 +4,13 @@ find_package(SDL2 REQUIRED)
 set(gfx_files
   gfx.cpp
   window.cpp
-  types.cpp
+  renderable.cpp
 )
 
 set(gfx_api
   gfx.hpp
   window.hpp
+  renderable.hpp
   types.hpp
 )
 

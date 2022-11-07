@@ -1,4 +1,4 @@
-#include "luna/graphics/types.hpp"
+#include "luna/graphics/renderable.hpp"
 #include <glm/glm.hpp>
 #include <vector>
 namespace luna {
@@ -19,6 +19,15 @@ struct RenderableResources {
 static auto renderable_resources() -> RenderableResources& {
   static auto r = RenderableResources();
   return r;
+}
+
+
+auto Renderable::set_per_frame_info(const Scene* scene, const glm::vec3& pos) -> void {
+  
+}
+
+Renderable::~Renderable() {
+
 }
 
 Text::Text(const glm::vec3* position, std::string_view font_name) {
@@ -53,11 +62,11 @@ auto Text::toggle_outline() -> bool {
   return true;
 }
 
-auto Text::render(std::int32_t target) -> void {
+auto Text::render(gfx::CommandBuffer& target) const -> void {
 
 }
 
-Image2D::Image2D(const glm::vec3* position, std::string_view img, std::string_view material) {
+Image2D::Image2D(std::string_view img, std::string_view material) {
 
 }
 
@@ -65,7 +74,7 @@ Image2D::~Image2D() {
 
 }
 
-auto Image2D::render(std::int32_t target) -> void {
+auto Image2D::render(gfx::CommandBuffer& target) const -> void {
 
 }
 
@@ -74,7 +83,7 @@ auto Image2D::render(std::int32_t target) -> void {
 //public:
 //  Billboard();
 //  virtual ~Billboard();
-//  virtual auto render(std::int32_t target) -> void;
+//  virtual auto render(gfx::CommandBuffer& target) -> void;
 //};
 }
 }

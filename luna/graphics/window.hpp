@@ -86,6 +86,7 @@ struct WindowInfo {
       auto resizable() -> bool;
       auto minimized() -> bool;
       auto maximized() -> bool;
+      auto swapchain() -> int32_t;
     private:
       struct WindowData;
       std::unique_ptr<WindowData> m_data;

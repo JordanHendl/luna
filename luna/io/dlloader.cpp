@@ -1,5 +1,6 @@
 #include "luna/io/dlloader.hpp"
 #include "luna/error/error.hpp"
+#include "luna/log/log.hpp"
 #include <iostream>
 #include <string>
 #include <map>
@@ -52,6 +53,7 @@ struct Dlloader::DlloaderData {
 
   LibHandle handle;
   FunctionMap map;
+  std::string soname;
 
   DlloaderData() { this->handle = NULL; }
   ~DlloaderData() {
@@ -70,6 +72,7 @@ Dlloader::DL_FUNC Dlloader::symbol(const char* symbol_name) {
   Dlloader::DL_FUNC func;
 
   if (data().map.find(symbol_name) == data().map.end()) {
+    luna::log_debug("Loading symbol ", symbol_name, " from ", data().soname);
     func = reinterpret_cast<Dlloader::DL_FUNC>(
           loadSymbol(data().handle, symbol_name));
     LunaAssert(func, "Unable to load requested symbol ", symbol_name, " from the loaded module!");
@@ -81,8 +84,8 @@ Dlloader::DL_FUNC Dlloader::symbol(const char* symbol_name) {
 
 void Dlloader::load(const char* lib_path) {
   data().handle = loadSharedObject(lib_path);
-  if(!data().handle) std::cout << getError() << std::endl;  
-  LunaAssert(data().handle, "Unable to load dynamic lib ", lib_path, ".");
+  data().soname = lib_path;
+  LunaAssert(data().handle, "Unable to load dynamic lib ", lib_path, ".", " Error: ", getError());
 }
 
 bool Dlloader::initialized() const { return data().handle != nullptr; }

@@ -256,5 +256,5 @@ void Swapchain::wait(CommandBuffer& cmd) {
   //cmd.add_signal(-1);
   //this->m_dependency = &cmd;
 }
-}  // namespace ivk
-}  // namespace imp
+}  // namespace vulkan
+}  // namespace luna

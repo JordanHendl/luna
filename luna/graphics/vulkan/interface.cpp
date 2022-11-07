@@ -20,6 +20,7 @@ auto make_devices() -> void {
     res.devices.emplace_back(std::move(device));
   }
 
+  // Need to sort the devices by score now.
   auto compare = [](Device& a, Device& b) {
     return a.score() > b.score();
   };
@@ -131,10 +132,14 @@ LUNA_C_API auto destroy_buffer(int32_t handle) -> void {
   buffer.valid = false;
 }
 
-LUNA_C_API auto make_image(luna::gfx::ImageInfo in_info, unsigned char* pInitialData) -> int32_t {
+LUNA_C_API auto make_image(luna::gfx::ImageInfo in_info, const unsigned char* pInitialData) -> int32_t {
   return luna::vulkan::create_image(in_info, pInitialData);
 }
 
 LUNA_C_API auto destroy_image(int32_t handle) -> void {
   luna::vulkan::destroy_image(handle);
+}
+
+LUNA_C_API auto make_command_buffer(int gpu) -> int32_t {
+  return luna::vulkan::create_cmd(gpu, nullptr);
 }

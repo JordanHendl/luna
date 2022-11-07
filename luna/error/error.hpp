@@ -7,7 +7,7 @@ namespace luna {
 namespace luna {
 template<typename ...Args>
 inline auto _luna_assert_impl(Args ... args) {
-  {(std::cout << "Assertion failed: " << ... << args); std::cout << std::endl;}
+  {(std::cout << "----- ERROR ---- Assertion failed: " << ... << args); std::cout << "---- ERROR ----" << std::endl;}
 }
 
 #define LunaAssert(cond, ...)       \

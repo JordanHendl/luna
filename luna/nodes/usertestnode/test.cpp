@@ -8,7 +8,6 @@
 class TestObject : public luna::GameObject {
   public:
   TestObject()  {
-    this->m_renderable = std::make_unique<luna::gfx::Image2D>(&this->m_pos, "default", "default");
   }
 
   virtual ~TestObject() {};
@@ -34,7 +33,7 @@ LUNA_C_API auto initialize() -> void {
 
   luna::set_current_scene(&data.scene);
   data.scene.attach_window(&data.window);
-  data.scene.add("test_object", &data.obj);
+  data.scene.add<luna::gfx::Image2D>("test_object", &data.obj, "default", "default");
   data.events.add(&check_event);
 }
 

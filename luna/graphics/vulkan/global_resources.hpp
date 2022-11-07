@@ -109,8 +109,7 @@ inline auto create_cmd(int gpu, CommandBuffer* parent = nullptr) -> int32_t {
 
 inline auto destroy_cmd(int32_t handle) {
   auto& res = global_resources();
-  auto index = find_valid_entry(res.cmds);
-  auto& cmd = res.cmds[index];
+  auto& cmd = res.cmds[handle];
   cmd.valid = false;
 }
 
@@ -124,7 +123,7 @@ inline auto create_image(gfx::ImageInfo& in_info, vk::Image import) -> int32_t {
   return index;
 }
 
-inline auto create_image(gfx::ImageInfo& in_info, unsigned char*) -> int32_t {
+inline auto create_image(gfx::ImageInfo& in_info, const unsigned char*) -> int32_t {
   auto& res = luna::vulkan::global_resources();
   auto& allocator = res.allocators[in_info.gpu];
   auto info = vk::ImageCreateInfo();

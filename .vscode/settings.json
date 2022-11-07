@@ -67,6 +67,9 @@
     "forward_list": "cpp",
     "fstream": "cpp",
     "valarray": "cpp",
-    "shared_mutex": "cpp"
+    "shared_mutex": "cpp",
+    "unordered_set": "cpp",
+    "span": "cpp",
+    "typeindex": "cpp"
   }
 }

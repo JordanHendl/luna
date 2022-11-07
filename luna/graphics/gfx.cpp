@@ -8,6 +8,8 @@ namespace gfx {
   struct GraphicsConfiguration {
     std::string db_location = "";
     std::string backend = "vulkan";
+    io::Dlloader dlloader;
+
     auto set_db_location(std::string val) -> void {this->db_location = val;}
     
     cfg::Bus bus;
@@ -29,7 +31,8 @@ namespace gfx {
   auto initialize() -> void {
     auto& cfg = config();
     auto& imp = impl();
-    auto dlloader = io::Dlloader();
+    auto& dlloader = cfg.dlloader;
+    
     if(!cfg.db_location.empty()) {
       LunaAssert(cfg.backend == "vulkan", "Other graphics backends are not supported. Only vulkan is available.");
       //TODO: Make this ifdef and have a windows version.

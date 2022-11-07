@@ -98,5 +98,5 @@ struct Device {
     inline auto make_extensions(vk::DispatchLoaderDynamic& dispatch) -> std::vector<const char*>;
     inline auto make_layers(vk::DispatchLoaderDynamic& dispatch) -> std::vector<const char*>;
 };
-}  // namespace ivk
-}  // namespace imp
+}  // namespace vulkan
+}  // namespace luna

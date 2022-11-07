@@ -1,6 +1,7 @@
 #pragma once
 #include <utility>
 #include <memory>
+#include "luna/error/error.hpp"
 
 #ifdef WIN32
 #ifdef LUNA_EXPORT_SHARED_LIB
@@ -120,6 +121,7 @@ Symbol<RETURN, ARGS...>::operator bool() const {
 
 template <class RETURN, class... ARGS>
 RETURN Symbol<RETURN, ARGS...>::operator()(ARGS... args) {
+  LunaAssert(this->func, "Attempting to use a symbol that is invalid/not been loaded.");
   return ((this->func)(args...));
 }
 

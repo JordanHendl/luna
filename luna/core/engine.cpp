@@ -1,5 +1,8 @@
 #include "luna/core/engine.hpp"
+#include "luna/graphics/impl/impl.hpp"
+#include "luna/graphics/renderable.hpp"
 #include "luna/plugin/plugin.hpp"
+#include "luna/log/log.hpp"
 #include "luna/io/io.hpp"
 #include "luna/io/event.hpp"
 #include <unordered_map>
@@ -18,6 +21,7 @@ namespace luna {
   }
 
   auto run() -> int {
+    luna::log_debug("Beginning main engine loop...");
     while(running()) {
       luna::plugin::tick();
       luna::poll_events();
@@ -35,7 +39,20 @@ namespace luna {
   }
   
   struct Scene::SceneData {
-    std::unordered_map<std::string, const GameObject*> m_objects;
+    const unsigned num_cmds = 3u;
+
+    std::unordered_map<std::string, std::pair<const GameObject*, std::unique_ptr<gfx::Renderable>>> m_objects;
+    std::vector<gfx::CommandBuffer> m_cmds;
+    std::size_t m_curr_cmd = 0;
+    gfx::Window* m_window = nullptr;
+    gfx::RenderPass m_pass;
+
+    SceneData() {
+      this->m_cmds.resize(num_cmds);
+
+      auto rp_info = gfx::RenderPassInfo();
+      rp_info.attachments = {}; // @TODO fill out attachments properly like a good boy
+    }
   };
 
   Scene::Scene() {
@@ -46,19 +63,16 @@ namespace luna {
 
   }
 
-  auto Scene::add(std::string_view name, const GameObject* render) -> void {
-    this->m_data->m_objects[std::string(name)] = render;
-  }
-
-  auto Scene::add(std::string_view name, const std::vector<GameObject*> list) -> void {
-
+  auto Scene::add(std::string_view name, std::pair<const GameObject*, std::unique_ptr<gfx::Renderable>> obj_pair) -> void {
+    this->m_data->m_objects[std::string(name)].first = obj_pair.first;
+    this->m_data->m_objects[std::string(name)].second = std::move(obj_pair.second);
   }
 
   auto Scene::get(std::string_view name) const -> const GameObject* {
-    return this->m_data->m_objects[std::string(name)];
+    return this->m_data->m_objects[std::string(name)].first;
   }
 
-  auto Scene::get() const -> const std::unordered_map<std::string, const GameObject*>& {
+  auto Scene::get() -> std::unordered_map<std::string, std::pair<const GameObject*, std::unique_ptr<gfx::Renderable>>>& {
     return this->m_data->m_objects;
   }
 
@@ -71,10 +85,26 @@ namespace luna {
   }
 
   auto Scene::attach_window(gfx::Window* window) -> void {
-
+    this->m_data->m_window = window;
   }
 
   auto Scene::detach_window() -> void {
+    this->m_data->m_window = nullptr;
+  }
+  
+  auto Scene::window() -> gfx::Window* {
+    return this->m_data->m_window;
+  }
 
+  auto Scene::render_pass() -> gfx::RenderPass& {
+    return this->m_data->m_pass;
+  }
+
+  auto Scene::start() -> gfx::CommandBuffer& {
+    return this->m_data->m_cmds[this->m_data->m_curr_cmd];
+  }
+
+  auto Scene::end() -> void {
+    this->m_data->m_curr_cmd = this->m_data->m_curr_cmd + 1 % this->m_data->num_cmds;
   }
 }
