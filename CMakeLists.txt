@@ -7,7 +7,7 @@ option(Build_Tests "Whether or not to build tests for this project." ON)
 option(Run_Tests "Whether or not running of tests should occur as a part of the build." ON)
 
 if(Build_Release)
-  set(CMAKE_BUILD_TYPE Release)
+  set(CMAKE_BUILD_TYPE Debug) # This is solely so asserts still work.
 
   if(MSVC)
     set(CXX_COMPILE_OPTIONS /W2 /O2)
@@ -71,6 +71,18 @@ set(DOCUMENTATION_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${EXPORT_DOC_DIR})
 
 add_compile_options(${CXX_COMPILE_OPTIONS})
 add_link_options(${LINKER_OPTIONS})
+
+if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/config.json")
+  message("Could not find configuration in build dir. Copying over default config.")
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/defaults.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/defaults.json ${CMAKE_CURRENT_BINARY_DIR}/config.json)
+endif()
+
+if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/materials.json")
+  message("Could not find materials in build dir. Copying over default materials.")
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/default_materials.json DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+  file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/default_materials.json ${CMAKE_CURRENT_BINARY_DIR}/materials.json)
+endif()
 
 # add_subdirectory(external)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

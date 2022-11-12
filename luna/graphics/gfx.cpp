@@ -1,5 +1,6 @@
 #include "luna/graphics/gfx.hpp"
 #include "luna/graphics/impl/impl.hpp"
+#include "luna/graphics/material/material_manager.hpp"
 #include "luna/config/bus.hpp"
 #include "luna/io/dlloader.hpp"
 #include "luna/error/error.hpp"
@@ -35,8 +36,10 @@ namespace gfx {
     
     if(!cfg.db_location.empty()) {
       LunaAssert(cfg.backend == "vulkan", "Other graphics backends are not supported. Only vulkan is available.");
-      //TODO: Make this ifdef and have a windows version.
+      //  TODO: Make this ifdef and have a windows version.
       auto lib_path = cfg.db_location + std::string("/backend/libluna_vulkan.so");
+
+      // Do backend initialization. 
       dlloader.load(lib_path.c_str());
       imp.system.initialize = dlloader.symbol("initialize");
       imp.buffer.make_vertex = dlloader.symbol("make_vertex_buffer");
@@ -46,7 +49,15 @@ namespace gfx {
 
       imp.image.make = dlloader.symbol("make_image");
       imp.image.destroy = dlloader.symbol("destroy_image");
+
+      imp.cmd.make = dlloader.symbol("make_command_buffer");
+      imp.cmd.destroy = dlloader.symbol("destroy_command_buffer");
+      imp.cmd.bind_descriptor = dlloader.symbol("set_descriptor");
+
       imp.system.initialize();
+
+      // Initialize materials
+      luna::gfx::MaterialManager::initialize_materials(cfg.db_location);
     }
   }
 }

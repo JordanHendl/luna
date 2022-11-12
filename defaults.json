@@ -1,0 +1,11 @@
+{
+  "io": {},
+  "gfx": {},
+  "plugin": {
+    "nodes": [
+      "rendernode",
+      "usertestnode"
+    ]
+  },
+  "log": {}
+}

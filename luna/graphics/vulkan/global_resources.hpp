@@ -32,13 +32,23 @@ struct Image {
 };
 
 struct CommandBuffer {
-  std::vector<vk::CommandBuffer> cmds = {};
-  std::array<std::vector<vk::Semaphore>, 3> wait_sems = {};
-  std::array<std::vector<vk::Semaphore>, 3> signal_sems = {};
-  std::array<vk::Fence, 3> fences = {};
+  vk::CommandBuffer cmd = {};
+  std::vector<vk::Semaphore> wait_sems = {};
+  std::vector<vk::Semaphore> signal_sems = {};
+  vk::Fence fence = {};
   int gpu = -1;
   bool valid = false;
   CommandBuffer* parent = nullptr;
+};
+
+struct Pipeline {
+  vk::Pipeline pipeline;
+  vk::PipelineBindPoint bind_point;
+};
+
+struct Descriptor {
+  vk::DescriptorSet descriptor;
+  int32_t pipeline;
 };
 
 struct GlobalResources {
@@ -50,7 +60,8 @@ struct GlobalResources {
   std::vector<Image> images;
   std::vector<vk::SurfaceKHR> surfaces;
   std::vector<CommandBuffer> cmds;
-  
+  std::vector<Pipeline> pipelines;
+  std::vector<Descriptor> descriptors;
   private:
     GlobalResources();
     ~GlobalResources();
@@ -97,12 +108,11 @@ inline auto create_cmd(int gpu, CommandBuffer* parent = nullptr) -> int32_t {
   auto pool = create_pool(device, device.graphics().id);
   auto info = vk::CommandBufferAllocateInfo();
   auto fence_info = vk::FenceCreateInfo();
-  info.setCommandBufferCount(3);
+  info.setCommandBufferCount(1);
   info.setCommandPool(pool);
   info.setLevel(parent ? vk::CommandBufferLevel::eSecondary : vk::CommandBufferLevel::ePrimary);
-  cmd.cmds = error(device.gpu.allocateCommandBuffers(info, device.m_dispatch));
-  for(auto& fence : cmd.fences)
-    fence = error(device.gpu.createFence(fence_info, device.allocate_cb, device.m_dispatch));
+  cmd.cmd = error(device.gpu.allocateCommandBuffers(info, device.m_dispatch)).data()[0];
+  cmd.fence = error(device.gpu.createFence(fence_info, device.allocate_cb, device.m_dispatch));
   cmd.valid = true;
   return index;
 }

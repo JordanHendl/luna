@@ -12,7 +12,7 @@ inline auto _luna_assert_impl(Args ... args) {
 
 #define LunaAssert(cond, ...)       \
   if (!(cond)) {                    \
-    _luna_assert_impl(__VA_ARGS__); \
+    luna::_luna_assert_impl(__VA_ARGS__); \
     assert(cond);                   \
   }
 //#else

@@ -5,6 +5,9 @@ set(gfx_files
   gfx.cpp
   window.cpp
   renderable.cpp
+
+  material/material.cpp
+  material/material_manager.cpp
 )
 
 set(gfx_api
@@ -12,6 +15,9 @@ set(gfx_api
   window.hpp
   renderable.hpp
   types.hpp
+
+  material/material.hpp
+  material/material_manager.hpp
 )
 
 add_library(gfx SHARED ${gfx_files})

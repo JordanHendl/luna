@@ -26,7 +26,7 @@ namespace cfg {
       auto subsystem = config[str];
       for(auto token = subsystem.begin(); token != subsystem.end(); ++token) {
         auto concatenated_str = std::string("cfg::") + std::string(str) + "::" + std::string(token.key());
-        json::reference val = token.value();
+        auto val = token.value();
 
         auto handle = [&token, &bus, &concatenated_str](json::reference& value) {
             if(value.is_number()) {
@@ -67,6 +67,8 @@ namespace cfg {
     auto config_path = std::string(db_path) + "/config.json";
     if(std::filesystem::exists(config_path)) {
       parse_and_send(config_path);
+    } else {
+      luna::log_debug("Config ", config_path, " does not exist in the database. Cannot parse any configuration data. Getting default values.");
     }
   }
 
