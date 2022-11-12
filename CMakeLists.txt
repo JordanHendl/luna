@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.13)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+include(CompileShader)
+
 project(luna)
 option(Build_Benchmarks "Whether or not to build benchmarks for this project." ON)
 option(Build_Release "Whether or not to build the release version of this project." ON)
@@ -84,7 +87,9 @@ if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/materials.json")
   file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/default_materials.json ${CMAKE_CURRENT_BINARY_DIR}/materials.json)
 endif()
 
-# add_subdirectory(external)
+set(SHADER_DIR ${CMAKE_BINARY_DIR}/shaders/)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(external)
+add_subdirectory(shaders)
 add_subdirectory(luna)
