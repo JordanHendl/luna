@@ -62,7 +62,7 @@ Swapchain::~Swapchain() {
     for (auto& sem : this->m_present_done) gpu.destroy(sem, alloc_cb, dispatch);
 
     for (auto& img : this->m_images)
-      global_resources().images[img].valid = false;
+      global_resources().images[img].image = nullptr;
 
     this->m_images.clear();
     this->m_fences.clear();

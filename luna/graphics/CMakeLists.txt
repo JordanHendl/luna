@@ -5,6 +5,7 @@ set(gfx_files
   gfx.cpp
   window.cpp
   renderable.cpp
+  shader.cpp
 
   material/material.cpp
   material/material_manager.cpp
@@ -15,10 +16,12 @@ set(gfx_api
   window.hpp
   renderable.hpp
   types.hpp
+  shader.hpp
 
   material/material.hpp
   material/material_manager.hpp
 )
 
 add_library(gfx SHARED ${gfx_files})
-target_link_libraries(gfx PUBLIC io config gfx_impl SDL2::SDL2)
+target_link_libraries(gfx PUBLIC io config gfx_impl SDL2::SDL2 shaderc_combined spirv_reflect)
+target_include_directories(gfx PUBLIC ${spirv-reflect_include_dirs})

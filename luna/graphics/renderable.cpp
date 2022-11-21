@@ -78,7 +78,9 @@ auto Image2D::render(gfx::CommandBuffer& target) const -> void {
 
 }
 
-
+auto Image2D::generate_descriptor(const MaterialManager& man) -> void {
+  
+}
 //class Billboard : public Renderable {
 //public:
 //  Billboard();

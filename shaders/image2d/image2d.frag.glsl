@@ -5,15 +5,11 @@
 
 flat layout( location = 1 ) in  uint index;
 
-layout( location = 0 ) out vec4 out_color ;
-
-layout( binding = 0 ) uniform sampler2D textures[ 1024 ] ; 
-
 void main()
 {  
   vec4 color ;
-
+   
   color = texture( textures[ index ], luna_frag_coords ) ;
   if( color.a < 0.1 ) discard ;
-  out_color = color ;
+  luna_frag_color = color ;
 }

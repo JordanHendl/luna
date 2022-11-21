@@ -6,20 +6,20 @@
      
 flat layout( location = 1 ) out uint texture_index  ;
 
-layout( binding = 1 ) uniform projection
+layout( binding = 1 ) uniform ProjectionMatrix
 {
   mat4 proj ; 
-};
+} proj_mat;
 
-layout( binding = 2 ) buffer transform
+layout( binding = 2 ) buffer Transformations
 {
   mat4 transforms[] ;
-};
+} transform;
 
-layout( binding = 3 ) buffer texture_id
+layout( binding = 3 ) buffer TextureIds
 {
   uint texture_ids[] ;
-};
+} tex_ids;
 
 void main()
 {
@@ -29,9 +29,9 @@ void main()
   vec2 tex            ;
 
   position      = vec4( luna_position.x, luna_position.y, 0.0, 1.0 ) ;
-  model         = transforms [ gl_InstanceIndex ]         ;
-  texture_index = texture_ids[ gl_InstanceIndex ]         ;
-  projection    = proj                                    ;
+  model         = transform.transforms [ gl_InstanceIndex ]          ;
+  texture_index = tex_ids.texture_ids[ gl_InstanceIndex ]            ;
+  projection    = proj_mat.proj                                      ;
 
   luna_frag_coords   = vec2( luna_tex_coords.x, luna_tex_coords.y );
   gl_Position = projection * model * position ;  

@@ -2,6 +2,10 @@
 #include "luna/graphics/vulkan/vulkan_defines.hpp"
 #include "luna/graphics/vulkan/vk_wrappers/instance.hpp"
 #include "luna/graphics/vulkan/vk_wrappers/device.hpp"
+#include "luna/graphics/vulkan/vk_wrappers/pipeline.hpp"
+#include "luna/graphics/vulkan/vk_wrappers/descriptor.hpp"
+#include "luna/graphics/vulkan/vk_wrappers/render_pass.hpp"
+#include "luna/graphics/vulkan/vk_wrappers/data_types.hpp"
 #include "luna/graphics/vulkan/error.hpp"
 #include "luna/graphics/types.hpp"
 #include "luna/io/dlloader.hpp"
@@ -16,40 +20,10 @@
 #include <map>
 namespace luna {
 namespace vulkan {
+class Descriptor;
+class Pipeline;
+
 auto create_pool(Device& device, int queue_family) -> vk::CommandPool;
-struct Buffer {
-  vk::Buffer buffer = {};
-  VmaAllocation alloc = {};
-  bool valid = false;
-  int gpu = -1;
-};
-
-struct Image {
-  vk::Image image = {};
-  VmaAllocation alloc = {};
-  bool valid = false;
-  gfx::ImageInfo info = {};
-};
-
-struct CommandBuffer {
-  vk::CommandBuffer cmd = {};
-  std::vector<vk::Semaphore> wait_sems = {};
-  std::vector<vk::Semaphore> signal_sems = {};
-  vk::Fence fence = {};
-  int gpu = -1;
-  bool valid = false;
-  CommandBuffer* parent = nullptr;
-};
-
-struct Pipeline {
-  vk::Pipeline pipeline;
-  vk::PipelineBindPoint bind_point;
-};
-
-struct Descriptor {
-  vk::DescriptorSet descriptor;
-  int32_t pipeline;
-};
 
 struct GlobalResources {
   io::Dlloader vulkan_loader;
@@ -62,6 +36,7 @@ struct GlobalResources {
   std::vector<CommandBuffer> cmds;
   std::vector<Pipeline> pipelines;
   std::vector<Descriptor> descriptors;
+  std::vector<RenderPass> render_passes;
   private:
     GlobalResources();
     ~GlobalResources();
@@ -72,10 +47,10 @@ struct GlobalResources {
 auto global_resources() -> GlobalResources&;
 
 template<typename T>
-auto find_valid_entry(T container) -> size_t {
+auto find_valid_entry(const T& container) -> size_t {
   auto index = 0u;
-  for(auto& a : container) {
-    if(!a.valid) {return index;}
+  for(const auto& a : container) {
+    if(!a.valid()) {return index;}
     index++;
   }
   LunaAssert(false, "Ran out of space!");
@@ -113,14 +88,14 @@ inline auto create_cmd(int gpu, CommandBuffer* parent = nullptr) -> int32_t {
   info.setLevel(parent ? vk::CommandBufferLevel::eSecondary : vk::CommandBufferLevel::ePrimary);
   cmd.cmd = error(device.gpu.allocateCommandBuffers(info, device.m_dispatch)).data()[0];
   cmd.fence = error(device.gpu.createFence(fence_info, device.allocate_cb, device.m_dispatch));
-  cmd.valid = true;
+  cmd.gpu = gpu;
   return index;
 }
 
 inline auto destroy_cmd(int32_t handle) {
   auto& res = global_resources();
   auto& cmd = res.cmds[handle];
-  cmd.valid = false;
+  cmd.cmd = nullptr;
 }
 
 inline auto create_image(gfx::ImageInfo& in_info, vk::Image import) -> int32_t {
@@ -129,33 +104,106 @@ inline auto create_image(gfx::ImageInfo& in_info, vk::Image import) -> int32_t {
   auto& image = res.images[index];
   image.info = in_info;
   image.image = import;
-  image.valid = true;
+
   return index;
 }
 
-inline auto create_image(gfx::ImageInfo& in_info, const unsigned char*) -> int32_t {
+inline auto create_sampler(luna::vulkan::Device& device, luna::vulkan::Image& img) {
+  const auto max_anisotropy = 16.0f;
+  auto info = vk::SamplerCreateInfo();
+  info.setMagFilter(vk::Filter::eNearest);
+  info.setMinFilter(vk::Filter::eNearest);
+  info.setAddressModeU(vk::SamplerAddressMode::eRepeat);
+  info.setAddressModeV(vk::SamplerAddressMode::eRepeat);
+  info.setAddressModeW(vk::SamplerAddressMode::eRepeat);
+  info.setBorderColor(vk::BorderColor::eIntTransparentBlack);
+  info.setCompareOp(vk::CompareOp::eNever);
+  info.setMipmapMode(vk::SamplerMipmapMode::eLinear);
+  info.setAnisotropyEnable(vk::Bool32(false));
+  info.setUnnormalizedCoordinates(vk::Bool32(false));
+  info.setCompareEnable(vk::Bool32(false));
+  info.setMaxAnisotropy(max_anisotropy);
+  info.setMipLodBias(0.0f);
+  info.setMinLod(0.0f);
+  info.setMaxLod(0.0f);
+
+  img.sampler = luna::vulkan::error(device.gpu.createSampler(info, device.allocation_cb(), device.m_dispatch));
+}
+
+inline auto create_image_view(luna::vulkan::Device& device, luna::vulkan::Image& img) -> void {
+  auto info = vk::ImageViewCreateInfo();
+  auto range = vk::ImageSubresourceRange();
+
+  if (img.info.format == luna::gfx::ImageFormat::Depth) {
+    range.setAspectMask(vk::ImageAspectFlagBits::eDepth |
+                        vk::ImageAspectFlagBits::eStencil);
+  } else {
+    range.setAspectMask(vk::ImageAspectFlagBits::eColor);
+  }
+
+  range.setBaseArrayLayer(0);
+  range.setBaseMipLevel(0);
+  range.setLayerCount(img.info.layers);
+  range.setLevelCount(1);
+
+  info.setImage(img.image);
+  info.setViewType(img.view_type);  //@JH TODO Make configurable.
+  info.setFormat(img.format);
+  info.setSubresourceRange(range);
+
+  img.view = luna::vulkan::error(device.gpu.createImageView(info, device.allocate_cb, device.m_dispatch));
+}
+
+inline auto create_image(gfx::ImageInfo& in_info, vk::ImageLayout layout, vk::ImageUsageFlags usage, const unsigned char*) -> int32_t {
   auto& res = luna::vulkan::global_resources();
   auto& allocator = res.allocators[in_info.gpu];
+  auto& gpu = res.devices[in_info.gpu];
   auto info = vk::ImageCreateInfo();
   auto alloc_info = VmaAllocationCreateInfo{};
   auto index = luna::vulkan::find_valid_entry(res.images);
   auto& image = res.images[index];
 
-  luna::log_debug("Vulkan -> Creating image on gpu ", in_info.gpu, " with width ", in_info.width, " and height ", in_info.height);
-  info.extent = vk::Extent3D{static_cast<unsigned>(in_info.width), static_cast<unsigned>(in_info.height)};
+  if (in_info.is_cubemap) {
+    image.view_type = vk::ImageViewType::eCube;
+    info.imageType = vk::ImageType::e2D;
+  } else {
+    switch (in_info.layers) {
+      case 0:
+        image.view_type = vk::ImageViewType::e1D;
+        info.imageType = vk::ImageType::e1D;
+        break;
+      case 1:
+        image.view_type = vk::ImageViewType::e2D;
+        info.imageType = vk::ImageType::e2D;
+        break;
+      default:
+        image.view_type = vk::ImageViewType::e2DArray;
+        info.imageType = vk::ImageType::e2D;
+        break;
+    }
+  }
+
+  luna::log_debug("Vulkan -> Creating image on gpu ", in_info.gpu, " with width ", in_info.width, " and height ", in_info.height, " with ID ", index);
+  info.extent = vk::Extent3D{static_cast<unsigned>(in_info.width), static_cast<unsigned>(in_info.height), 1};
   info.arrayLayers = in_info.layers;
   info.format = luna::vulkan::convert(in_info.format);
-  info.imageType = vk::ImageType::e2D;
   info.initialLayout = vk::ImageLayout::eUndefined;
   info.mipLevels = in_info.num_mips;
+  info.usage = usage;
   alloc_info.usage = VMA_MEMORY_USAGE_AUTO;
 
-  auto& c_info = static_cast<VkImageCreateInfo&>(info);
+  auto& c_info = static_cast<VkImageCreateInfo&>(info); 
   auto c_image = static_cast<VkImage>(image.image);
   vmaCreateImage(allocator, &c_info, &alloc_info, &c_image, &image.alloc, nullptr);
+  LunaAssert(c_image, "Could not create image given input parameters.");
   image.info = in_info;
   image.image = c_image;
-  image.valid = true;
+  image.layout = layout;
+  image.format = info.format;
+  image.usage = usage;
+
+  create_sampler(gpu, image);
+  create_image_view(gpu, image);
   return index;
 }
 
@@ -164,7 +212,7 @@ inline auto destroy_image(int32_t handle) -> void {
   auto& img = res.images[handle];
   auto c_img = static_cast<VkImage>(img.image);
   vmaDestroyImage(res.allocators[img.info.gpu], c_img, img.alloc);
-  img.valid = false;
+  img.image = nullptr;
 }
 }
 }

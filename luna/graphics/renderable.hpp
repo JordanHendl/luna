@@ -11,7 +11,7 @@ class Scene;
 namespace gfx {
 class CommandBuffer;
 class Descriptor;
-
+class MaterialManager;
 class Renderable {
 public:
   Renderable() = default;
@@ -19,6 +19,7 @@ public:
 
   // pure virtual
   virtual auto render(gfx::CommandBuffer& target) const -> void = 0;
+  virtual auto generate_descriptor(const MaterialManager& man) -> void {};
   
   // shared
   auto set_per_frame_info(const Scene* scene, const glm::vec3& pos) -> void;
@@ -50,7 +51,8 @@ class Image2D : public Renderable {
 public:
   Image2D(std::string_view img, std::string_view material);
   virtual ~Image2D();
-  virtual auto render(gfx::CommandBuffer& target) const -> void;
+  virtual auto render(gfx::CommandBuffer& target) const -> void override;
+  virtual auto generate_descriptor(const MaterialManager& man) -> void override;
 };
 
 class Billboard : public Renderable {

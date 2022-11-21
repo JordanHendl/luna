@@ -29,6 +29,7 @@ namespace luna {
     //luna::system:::config_request();
     luna::gfx::request_config();
     luna::plugin::request_config();   
+    luna::request_config();
     //luna::io::config_request();
     
     luna::log_debug("Initializing configuration...");

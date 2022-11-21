@@ -29,6 +29,8 @@ auto running() -> bool;
 // Call this if you want to stop the engine. Sets @running to false.
 auto stop_engine() -> void;
 
+auto request_config() -> void;
+
 class GameObject {
   public:
     auto position() const -> const glm::vec3& {return this->m_pos;}

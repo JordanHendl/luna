@@ -35,7 +35,7 @@ namespace gfx {
     auto& dlloader = cfg.dlloader;
     
     if(!cfg.db_location.empty()) {
-      LunaAssert(cfg.backend == "vulkan", "Other graphics backends are not supported. Only vulkan is available.");
+      LunaAssert(cfg.backend == "vulkan", "Other graphics backends are not supported. Only vulkan is available currently.");
       //  TODO: Make this ifdef and have a windows version.
       auto lib_path = cfg.db_location + std::string("/backend/libluna_vulkan.so");
 
@@ -50,14 +50,22 @@ namespace gfx {
       imp.image.make = dlloader.symbol("make_image");
       imp.image.destroy = dlloader.symbol("destroy_image");
 
+      imp.render_pass.make = dlloader.symbol("make_render_pass");
+      imp.render_pass.destroy = dlloader.symbol("destroy_render_pass");
+      //imp.render_pass.get_image = dlloader.symbol("get_render_pass_image");
+
+      imp.pipeline.make_render = dlloader.symbol("make_render_pipeline");
+      imp.pipeline.make_compute = dlloader.symbol("make_compute_pipeline");
+      imp.pipeline.destroy = dlloader.symbol("destroy_pipeline");
+
       imp.cmd.make = dlloader.symbol("make_command_buffer");
       imp.cmd.destroy = dlloader.symbol("destroy_command_buffer");
       imp.cmd.bind_descriptor = dlloader.symbol("set_descriptor");
-
+      imp.cmd.begin_recording = dlloader.symbol("begin_command_buffer");
+      imp.cmd.end_recording = dlloader.symbol("end_command_buffer");
+      imp.cmd.start_rp = dlloader.symbol("begin_render_pass");
+      imp.cmd.end_rp = dlloader.symbol("end_render_pass");
       imp.system.initialize();
-
-      // Initialize materials
-      luna::gfx::MaterialManager::initialize_materials(cfg.db_location);
     }
   }
 }

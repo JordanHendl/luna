@@ -1,5 +1,6 @@
 #include "luna/graphics/vulkan/vulkan_defines.hpp"
 #include "luna/graphics/vulkan/vk_wrappers/instance.hpp"
+#include "luna/log/log.hpp"
 #include "luna/graphics/vulkan/error.hpp"
 namespace luna {
 namespace vulkan {
@@ -119,6 +120,8 @@ debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
         reinterpret_cast<VkDebugUtilsMessengerCreateInfoEXT*>(&debug_info));
   }
 
+  luna::log_debug("Vulkan -> Initialization instance with validation layers: ");
+  for(auto& v : validation) {luna::log_debug(v);}
   info.setEnabledLayerCount(validation.size());
   info.setEnabledExtensionCount(extensions.size());
   info.setPpEnabledLayerNames(validation.data());

@@ -39,7 +39,8 @@ struct GraphicsImplementation {
   } descriptor;
 
   struct Pipeline {
-    io::Symbol<int32_t, PipelineInfo> make;
+    io::Symbol<int32_t, int32_t, PipelineInfo> make_render;
+    io::Symbol<int32_t, PipelineInfo> make_compute;
     io::Symbol<void, int32_t> destroy;
   } pipeline;
 
@@ -53,26 +54,26 @@ struct GraphicsImplementation {
     //params: gpu, parnet | returns handle
     io::Symbol<int32_t, int, int32_t> make;
     
-    //params: render pass handle | returns nothing
-    io::Symbol<void, int32_t> start_rp;
+    //params: handle, render pass handle | returns nothing
+    io::Symbol<void, std::int32_t, std::int32_t> start_rp;
     
-    //params: render pass handle | returns nothing
-    io::Symbol<void> end_rp;
+    //params: handle, render pass handle | returns nothing
+    io::Symbol<void, std::int32_t> end_rp;
 
-    //params: nothing | returns nothing
-    io::Symbol<void> begin_recording;
+    //params: handle | returns nothing
+    io::Symbol<void, std::int32_t> begin_recording;
 
-    //params: nothing | returns nothing
-    io::Symbol<void> end_recording;
+    //params: handle | returns nothing
+    io::Symbol<void, std::int32_t> end_recording;
 
-    //params: descriptor handle | returns nothing
+    //params: handle, descriptor handle | returns nothing
     io::Symbol<void, int32_t, int32_t> bind_descriptor;
 
-    //params: vertex buffer handle | returns nothing
-    io::Symbol<void, int32_t> draw_vertex;
+    //params: handle, vertex buffer handle | returns nothing
+    io::Symbol<void, std::int32_t, std::int32_t> draw_vertex;
 
-    //params: vertex buffer handle, index buffer handle | returns nothing
-    io::Symbol<void, int32_t, int32_t> draw_indexed;
+    //params: handle, vertex buffer handle, index buffer handle | returns nothing
+    io::Symbol<void, std::int32_t, std::int32_t, std::int32_t> draw_indexed;
 
     //params: handle | returns nothing
     io::Symbol<void, int32_t> destroy;

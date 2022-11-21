@@ -3,13 +3,15 @@
 #include <string_view>
 namespace luna {
 namespace gfx {
+class RenderPass;
 class Material {
 public:
   Material();
-  Material(std::string_view vertex, std::string_view fragment);
+  Material(const RenderPass& rp, std::string_view vertex, std::string_view fragment);
+
   ~Material();
 private:
-
+  gfx::Pipeline m_pipeline;
 };
 }
 }

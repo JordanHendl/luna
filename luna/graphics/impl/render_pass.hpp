@@ -17,10 +17,11 @@ namespace gfx {
           impl().render_pass.destroy(this->m_handle);
         }
       }
-      RenderPass(RenderPass&& mv) = default;
+      RenderPass(RenderPass&& mv) {*this = std::move(mv);}
       RenderPass(const RenderPass& cpy) = delete;
-
-      auto operator=(RenderPass&& mv) -> RenderPass& = default;
+      auto info() const -> const RenderPassInfo& {return this->m_info;}
+      auto handle() const {return this->m_handle;}
+      auto operator=(RenderPass&& mv) -> RenderPass& {this->m_handle = mv.m_handle; mv.m_handle = -1; this->m_info = mv.m_info; return *this;};
       auto operator=(const RenderPass& cpy) -> RenderPass& = delete;
     private:
       std::int32_t m_handle;

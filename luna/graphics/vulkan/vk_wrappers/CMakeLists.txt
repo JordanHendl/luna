@@ -4,6 +4,10 @@ set(vulkan_impl_files
   swapchain.cpp
   instance.cpp
   swapchain.cpp
+  shader.cpp
+  render_pass.cpp
+  pipeline.cpp
+  descriptor.cpp
 )
 
 add_library(vulkan_impl STATIC ${vulkan_impl_files})

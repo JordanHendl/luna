@@ -1,5 +1,6 @@
 #pragma once
 #include "luna/graphics/impl/backend.hpp"
+#include "luna/graphics/impl/render_pass.hpp"
 #include "luna/graphics/types.hpp"
 #include "cstddef"
 namespace luna {
@@ -7,8 +8,8 @@ namespace gfx {
   class Pipeline {
     public:
       Pipeline() {this->m_handle = -1;}
-      Pipeline(PipelineInfo info) {
-        this->m_handle = impl().pipeline.make(info);
+      Pipeline(const RenderPass& pass, PipelineInfo info) {
+        this->m_handle = impl().pipeline.make_render(pass.handle(), info);
         this->m_info = info;
       };
 
@@ -17,12 +18,12 @@ namespace gfx {
           impl().pipeline.destroy(this->m_handle);
         }
       }
-      Pipeline(Pipeline&& mv) = default;
+      Pipeline(Pipeline&& mv) {*this = std::move(mv);};
       Pipeline(const Pipeline& cpy) = delete;
 
       inline auto handle() -> std::int32_t {return this->m_handle;}
       
-      auto operator=(Pipeline&& mv) -> Pipeline& = default;
+      auto operator=(Pipeline&& mv) -> Pipeline& {this->m_handle = mv.m_handle; mv.m_handle = -1; this->m_info = mv.m_info; return *this;};
       auto operator=(const Pipeline& cpy) -> Pipeline& = delete;
     private:
       std::int32_t m_handle;

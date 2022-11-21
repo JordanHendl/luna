@@ -48,7 +48,9 @@ function(compile_shader)
             POST_BUILD
             OUTPUT ${file_name}.spv
             COMMAND glslangValidator -I${INCLUDE_DIR} -V -o ${file_name}.spv ${CMAKE_CURRENT_SOURCE_DIR}/${ARG}
-            WORKING_DIRECTORY ${SHADER_DIR})
+            WORKING_DIRECTORY ${SHADER_DIR}
+            DEPENDS ${ARG}
+          )
 
           add_custom_target(
             ${file_name}_compiled ALL

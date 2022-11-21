@@ -1,6 +1,5 @@
 #include "luna/graphics/vulkan/vulkan_defines.hpp"
 #include "luna/graphics/vulkan/vk_wrappers/device.hpp"
-#include "luna/graphics/vulkan/global_resources.hpp"
 #include <vulkan/vulkan.hpp>
 #include <limits.h>
 #include <iostream>

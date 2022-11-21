@@ -46,6 +46,7 @@ GlobalResources::GlobalResources() {
   this->images.resize(MAX_OBJECT_AMT);
   this->descriptors.resize(MAX_OBJECT_AMT);
   this->pipelines.resize(MAX_OBJECT_AMT);
+  this->render_passes.resize(MAX_OBJECT_AMT);
   this->cmds.resize(MAX_CMD_AMT);
 }
 

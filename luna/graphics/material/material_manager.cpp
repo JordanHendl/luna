@@ -10,13 +10,9 @@ namespace gfx {
 
 using json = nlohmann::json;
 
-auto get_materials() -> std::unordered_map<std::string, std::unique_ptr<Material>>& {
-  static auto map = std::unordered_map<std::string, std::unique_ptr<Material>>();
-  return map;
-};
 
-auto MaterialManager::initialize_materials(std::string_view database_path) -> void {
-  auto& materials = get_materials();
+auto MaterialManager::initialize(const RenderPass& pass, std::string_view database_path) -> void {
+  auto& materials = this->map;
   const auto material_path = std::string(database_path) + "/materials.json";
   const auto shader_path = std::string(database_path) + "shaders/";
 
@@ -33,17 +29,17 @@ auto MaterialManager::initialize_materials(std::string_view database_path) -> vo
     auto fragment_shader = std::string("");
     for(auto param = token.value().begin(); param != token.value().end(); ++param) {
       luna::log_debug("-- With parameter \"", param.key(), "\" : ", param.value());
-      if(param.key() == std::string("vertex")) vertex_shader = param.value();
-      if(param.key() == std::string("fragment")) fragment_shader = param.value();
+      if(param.key() == std::string("vertex")) vertex_shader = std::string(database_path) + "/shaders/" + std::string(param.value());
+      if(param.key() == std::string("fragment")) fragment_shader = std::string(database_path) + "/shaders/" + std::string(param.value());
     }
 
-    materials[mat_name] =  std::make_unique<Material>(vertex_shader, fragment_shader);
+    materials[mat_name] =  std::make_unique<Material>(pass, vertex_shader, fragment_shader);
   }
 
 }
 
 auto MaterialManager::request(std::string_view mat_name) -> const Material* {
-  auto& materials = get_materials();
+  auto& materials = this->map;
   auto iter = materials.find(std::string(mat_name));
 
   LunaAssert(iter != materials.end(), "Could not find material ", mat_name, " in the list of loaded materials.");
