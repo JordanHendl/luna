@@ -242,6 +242,7 @@ LUNA_C_API auto end_command_buffer(int32_t handle) -> void {
 }
 
 LUNA_C_API auto set_descriptor(int32_t cmd_id, int32_t desc_id) -> void {
+  LunaAssert(desc_id >= 0, "Attempting to use an invalid descriptor."); 
   auto& res = luna::vulkan::global_resources();
   auto& cmd = res.cmds[cmd_id].cmd;
   auto& gpu = res.devices[res.cmds[cmd_id].gpu];
