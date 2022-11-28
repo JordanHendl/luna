@@ -1,8 +1,8 @@
-#include "luna/io/database/database.h"
+#include "luna/io/database/database.hpp"
 
 #include <fstream>
 
-#include "luna/io/database/json.h"
+#include "luna/io/json.hpp"
 namespace luna {
 inline namespace v1 {
 using json = nlohmann::json;
@@ -15,7 +15,7 @@ struct Database::DatabaseData {
 };
 
 Database::Database(std::string_view base_path) {
-  auto stream = std::fstream(std::string(base_path) + "/luna.json");
+  auto stream = std::fstream(std::string(base_path) + "/data.json");
   if (stream) {
     this->data->base = json::parse(stream);
     auto model_iter = this->data->base.find("models");
@@ -36,6 +36,7 @@ Database::Database(std::string_view base_path) {
   }
 }
 
+Database::~Database() {}
 auto Database::audio(std::string_view key) -> std::optional<std::string_view> {
   auto iter = data->audio.find(key);
   if (iter != data->audio.end()) {

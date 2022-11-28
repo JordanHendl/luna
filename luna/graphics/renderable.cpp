@@ -1,4 +1,5 @@
 #include "luna/graphics/renderable.hpp"
+#include "luna/graphics/material/material_manager.hpp"
 #include "luna/error/error.hpp"
 #include <glm/glm.hpp>
 #include <vector>
@@ -109,7 +110,10 @@ auto Image2D::render(gfx::CommandBuffer& target) const -> void {
 }
 
 auto Image2D::generate_descriptor(const MaterialManager& man) -> void {
-  //this->m_descriptor = 
+  const auto& pipe = man.request("image2d")->pipeline();
+  this->m_descriptor = gfx::Descriptor(pipe);
+
+  //@TODO bind necessary data.
 }
 //class Billboard : public Renderable {
 //public:

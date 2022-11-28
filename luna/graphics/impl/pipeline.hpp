@@ -21,7 +21,7 @@ namespace gfx {
       Pipeline(Pipeline&& mv) {*this = std::move(mv);};
       Pipeline(const Pipeline& cpy) = delete;
 
-      inline auto handle() -> std::int32_t {return this->m_handle;}
+      inline auto handle() const -> std::int32_t {return this->m_handle;}
       
       auto operator=(Pipeline&& mv) -> Pipeline& {this->m_handle = mv.m_handle; mv.m_handle = -1; this->m_info = mv.m_info; return *this;};
       auto operator=(const Pipeline& cpy) -> Pipeline& = delete;

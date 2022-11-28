@@ -1,33 +1,33 @@
-#include "luna/graphics/window.hpp"
+#include "luna/graphics/vulkan/window/window.hpp"
+#include "luna/graphics/vulkan/global_resources.hpp"
 #include "luna/error/error.hpp"
-#include "luna/config/bus.hpp"
 #include <SDL.h>
 #include <SDL_vulkan.h>
 #include <string>
 #include <utility>
 namespace luna {
-namespace gfx {
+namespace vulkan {
 
 struct Window::WindowData {
   SDL_Window* m_window = nullptr;
-  luna::cfg::Bus bus;
+  vk::SurfaceKHR m_surface = {};
 };
 
 Window::Window() {
   this->m_data = std::make_unique<Window::WindowData>();
-  auto info = WindowInfo();
-  this->m_data->m_window =
-      (SDL_CreateWindow(info.title.c_str(), 0, 0, info.width, info.height,
-                        SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN));
-
-  this->update(info);
 }
 
-Window::Window(WindowInfo info) {
+Window::Window(gfx::WindowInfo info) {
   this->m_data = std::make_unique<Window::WindowData>();
   this->m_data->m_window =
       (SDL_CreateWindow(info.title.c_str(), 0, 0, info.width, info.height,
                         SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN));
+
+  auto raw_surface = VkSurfaceKHR{};
+  auto error = SDL_Vulkan_CreateSurface(this->m_data->m_window, global_resources().instance.m_instance, &raw_surface);
+  LunaAssert(error, "Failed to create surface for window!");
+  (void)error;
+  this->m_data->m_surface = raw_surface;
 
   this->update(info);
 }
@@ -37,15 +37,18 @@ Window::Window(Window&& mv) { *this = std::move(mv); }
 Window::~Window() {
   if (this->m_data->m_window) SDL_DestroyWindow(this->m_data->m_window);
   this->m_data->m_window = nullptr;
+  this->m_data->m_surface = nullptr;
 }
 
 auto Window::operator=(Window&& mv) -> Window& {
   this->m_data->m_window = mv.m_data->m_window;
+  this->m_data->m_surface = mv.m_data->m_surface;
   mv.m_data->m_window = nullptr;
+  mv.m_data->m_surface = nullptr;
   return *this;
 }
 
-auto Window::update(WindowInfo info) -> void {
+auto Window::update(gfx::WindowInfo info) -> void {
   this->set_mouse_capture(info.capture_mouse);
 
   if (info.borderless != this->borderless())
@@ -187,6 +190,10 @@ auto Window::set_mouse_capture(bool value) -> void {
   SDL_ShowCursor(enabled);
 }
 
+auto Window::valid() const -> bool {
+  return this->m_data->m_window;
+}
+
 auto Window::title() -> std::string_view {
   LunaAssert(
       this->m_data->m_window,
@@ -297,6 +304,10 @@ auto Window::minimized() -> bool {
   auto flags = SDL_GetWindowFlags(this->m_data->m_window);
 
   return flags & SDL_WINDOW_MINIMIZED;
+}
+
+auto Window::surface() -> vk::SurfaceKHR {
+  return this->m_data->m_surface;
 }
 
 auto Window::maximized() -> bool {

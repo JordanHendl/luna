@@ -155,6 +155,7 @@ namespace luna {
     gfx::impl().cmd.end_rp(cmd.handle());
     gfx::impl().cmd.end_recording(cmd.handle());
     
-    this->m_data->m_curr_cmd = this->m_data->m_curr_cmd + 1 % this->m_data->num_cmds;
+    this->m_data->m_curr_cmd++;
+    if(this->m_data->m_curr_cmd >= this->m_data->num_cmds) this->m_data->m_curr_cmd = 0;
   }
 }

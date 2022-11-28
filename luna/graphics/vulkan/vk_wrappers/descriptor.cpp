@@ -7,7 +7,7 @@
 #include "luna/graphics/vulkan/error.hpp"
 #include "luna/graphics/vulkan/vk_wrappers/pipeline.hpp"
 #include "luna/graphics/types.hpp"
-
+#include "luna/graphics/vulkan/global_resources.hpp"
 namespace luna {
 namespace vulkan {
 inline static auto convert(gfx::VariableType type) -> vk::DescriptorType;
@@ -244,6 +244,11 @@ auto Descriptor::bind(std::string_view name, const Image** images,
   }
 }
 
-auto DescriptorPool::make() -> Descriptor { return Descriptor(this); }
+auto DescriptorPool::make() -> int32_t { 
+  auto& res = luna::vulkan::global_resources();
+  auto id = luna::vulkan::find_valid_entry(res.descriptors);
+  res.descriptors[id] = Descriptor(this);
+  return id;
+}
 }  // namespace vulkan
 }  // namespace luna

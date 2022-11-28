@@ -87,6 +87,11 @@ if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/materials.json")
   file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/default_materials.json ${CMAKE_CURRENT_BINARY_DIR}/materials.json)
 endif()
 
+if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/data.json")
+  message("Could not find data in build dir. Copying over default data.")
+  file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+endif()
+
 set(SHADER_DIR ${CMAKE_BINARY_DIR}/shaders/)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})

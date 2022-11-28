@@ -31,6 +31,8 @@ auto check_event(const luna::Event& event) -> void {
 LUNA_C_API auto initialize() -> void {
   luna::log_debug("Test Node initializing!");
 
+  data.window = luna::gfx::Window(luna::gfx::WindowInfo());
+  
   luna::set_current_scene(&data.scene);
   data.scene.attach_window(&data.window);
   data.scene.add<luna::gfx::Image2D>("test_object", &data.obj, "default", "default");

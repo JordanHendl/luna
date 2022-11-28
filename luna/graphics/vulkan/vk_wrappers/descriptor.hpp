@@ -20,7 +20,7 @@ class DescriptorPool {
   auto operator=(DescriptorPool&& mv) -> DescriptorPool&;
   auto initialize(const Pipeline& shader, size_t amount = MAX_DESCRIPTORS)
       -> void;
-  auto make() -> Descriptor;
+  auto make() -> int32_t;
   auto update_reference(const Pipeline* ref) -> void { this->m_pipeline = ref; }
 
  private:
@@ -51,7 +51,7 @@ class Descriptor {
   auto initialized() const -> bool { return this->m_set; }
   auto pipeline() const -> const Pipeline& { return *this->m_pipeline; }
   auto set() -> vk::DescriptorSet& { return this->m_set; }
-
+  auto valid() const -> bool {return this->m_set;}
  private:
   using UniformMap = DescriptorPool::UniformMap;
   friend class DescriptorPool;

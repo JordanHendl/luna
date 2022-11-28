@@ -11,7 +11,7 @@ public:
   MaterialManager() = default;
   ~MaterialManager() = default;
   auto initialize(const RenderPass& pass, std::string_view database_path) -> void;
-  auto request(std::string_view name) -> const Material*;
+  auto request(std::string_view name) const -> const Material*;
 private:
   std::unordered_map<std::string, std::unique_ptr<Material>> map;
 };

@@ -21,6 +21,10 @@ class Swapchain {
   auto wait(CommandBuffer& chain) -> void;
   auto present() -> bool;
   auto reset() -> void;
+  auto format() {return this->m_format;}
+  auto width() {return this->m_extent.width;}
+  auto height() {return this->m_extent.height;}
+  auto image(size_t index) {return this->m_images[index];}
  private:
   using Formats = std::vector<vk::SurfaceFormatKHR>;
   using Modes = std::vector<vk::PresentModeKHR>;
@@ -35,6 +39,7 @@ class Swapchain {
   Images m_images;
   Semaphores m_image_available;
   Semaphores m_present_done;
+  vk::Format m_format;
   vk::Queue m_queue;
   Device* m_device;
   CommandBuffer* m_dependency;

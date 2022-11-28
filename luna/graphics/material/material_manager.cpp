@@ -38,7 +38,7 @@ auto MaterialManager::initialize(const RenderPass& pass, std::string_view databa
 
 }
 
-auto MaterialManager::request(std::string_view mat_name) -> const Material* {
+auto MaterialManager::request(std::string_view mat_name) const -> const Material* {
   auto& materials = this->map;
   auto iter = materials.find(std::string(mat_name));
 

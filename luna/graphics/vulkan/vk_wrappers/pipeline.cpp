@@ -257,6 +257,6 @@ auto Pipeline::parse(const gfx::PipelineInfo& info) -> void {
   // @JH TODO add more config to parse.
 }
 
-auto Pipeline::descriptor() -> Descriptor { return this->m_pool.make(); }
+auto Pipeline::descriptor() -> int32_t { return this->m_pool.make(); }
 }  // namespace vulkan
 }  // namespace luna

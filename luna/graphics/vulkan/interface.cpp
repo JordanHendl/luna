@@ -103,36 +103,11 @@ LUNA_C_API auto make_uniform_buffer(int gpu, size_t size) -> int32_t {
 }
 
 LUNA_C_API auto make_mappable_buffer(int gpu, size_t size) -> int32_t {
-  auto& res  = luna::vulkan::global_resources();
-  auto info = vk::BufferCreateInfo();
-  auto alloc_info = VmaAllocationCreateInfo{};
-  auto index = luna::vulkan::find_valid_entry(res.buffers);
-  auto& buffer = res.buffers[index];
-
-  luna::log_debug("Vulkan -> Creating mappable buffer on gpu ", gpu, " with size ", size);
-  buffer.gpu = gpu;
-  alloc_info.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
-  alloc_info.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
-  info.size = size;
-  info.usage = vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eStorageBuffer;
-
-  auto& c_info = static_cast<VkBufferCreateInfo&>(info);
-  auto c_buffer = static_cast<VkBuffer>(buffer.buffer);
-  vmaCreateBuffer(res.allocators[gpu], &c_info, &alloc_info, &c_buffer, &buffer.alloc, nullptr);
-  buffer.buffer = c_buffer;
-  LunaAssert(c_buffer, "Could not create buffer given input parameters.");
-  return index;
+  return luna::vulkan::make_mappable_buffer(gpu, size);
 }
 
 LUNA_C_API auto destroy_buffer(int32_t handle) -> void {
-  auto& res  = luna::vulkan::global_resources();
-  auto& buffer = res.buffers[handle];
-  auto c_buffer = static_cast<VkBuffer>(buffer.buffer);
-  
-  luna::log_debug("Vulkan -> Creating destroying buffer ", handle);
-  LunaAssert(handle >= 0, "Attempting to use an invalid image.");
-  vmaDestroyBuffer(res.allocators[buffer.gpu], c_buffer, buffer.alloc);
-  buffer.buffer = nullptr;
+  luna::vulkan::destroy_buffer(handle);
 }
 
 LUNA_C_API auto make_image(luna::gfx::ImageInfo in_info, const unsigned char* pInitialData) -> int32_t {
@@ -147,6 +122,15 @@ LUNA_C_API auto destroy_image(int32_t handle) -> void {
 }
 
 LUNA_C_API auto make_render_pass(luna::gfx::RenderPassInfo& rp_info) -> int32_t {
+  auto& res = luna::vulkan::global_resources();
+  auto id = luna::vulkan::find_valid_entry(res.render_passes);
+  auto& gpu = res.devices[rp_info.gpu];
+  luna::log_debug("Vulkan -> Creating render pass ", id);
+  res.render_passes[id] = luna::vulkan::RenderPass(gpu, rp_info);
+  return id;
+}
+
+LUNA_C_API auto make_render_pass_to_window(luna::gfx::RenderPassInfo& rp_info, int32_t window_id) -> int32_t {
   auto& res = luna::vulkan::global_resources();
   auto id = luna::vulkan::find_valid_entry(res.render_passes);
   auto& gpu = res.devices[rp_info.gpu];
@@ -196,10 +180,7 @@ LUNA_C_API auto destroy_command_buffer(int32_t handle) -> void {
 }
 
 LUNA_C_API auto begin_command_buffer(int32_t handle) -> void {
-  LunaAssert(handle >= 0, "Attempting to use an invalid command buffer.");
-  auto& cmd = luna::vulkan::global_resources().cmds[handle];
-  auto& gpu = luna::vulkan::global_resources().devices[cmd.gpu];
-  luna::vulkan::error(cmd.cmd.begin(cmd.begin_info, gpu.m_dispatch));
+  luna::vulkan::begin_command_buffer(handle);
 }
 
 LUNA_C_API auto begin_render_pass(int32_t handle, int32_t rp_handle) -> void {
@@ -235,10 +216,7 @@ LUNA_C_API auto end_render_pass(int32_t handle) -> void {
 
 
 LUNA_C_API auto end_command_buffer(int32_t handle) -> void {
-  LunaAssert(handle >= 0, "Attempting to use an invalid command buffer.");
-  auto& cmd = luna::vulkan::global_resources().cmds[handle];
-  auto& gpu = luna::vulkan::global_resources().devices[cmd.gpu];
-  luna::vulkan::error(cmd.cmd.end(gpu.m_dispatch));
+  luna::vulkan::end_command_buffer(handle);
 }
 
 LUNA_C_API auto set_descriptor(int32_t cmd_id, int32_t desc_id) -> void {
@@ -250,4 +228,34 @@ LUNA_C_API auto set_descriptor(int32_t cmd_id, int32_t desc_id) -> void {
   auto& pipeline = desc.pipeline();
   LunaAssert(cmd_id >= 0, "Attempting to use an invalid command buffer."); 
   cmd.bindPipeline(pipeline.bind_point(), pipeline.pipeline(), gpu.m_dispatch);  
+}
+
+LUNA_C_API auto make_descriptor(int32_t pipeline_id) -> int32_t {
+  LunaAssert(pipeline_id >= 0, "Attempting to use an invalid pipeline."); 
+  auto& res = luna::vulkan::global_resources();
+  auto& pipe = res.pipelines[pipeline_id];
+  return pipe.descriptor();
+}
+
+LUNA_C_API auto destroy_descriptor(int32_t id) -> void {
+  LunaAssert(id >= 0, "Attempting to use an invalid descriptor."); 
+  auto& res = luna::vulkan::global_resources();
+  auto tmp = std::move(res.descriptors[id]);
+}
+
+LUNA_C_API auto make_window(luna::gfx::WindowInfo info) -> int32_t {
+  auto& res = luna::vulkan::global_resources();
+  auto& gpu = res.devices[0];
+  auto id = luna::vulkan::find_valid_entry(res.windows);
+  res.windows[id] = std::move(luna::vulkan::Window(info));
+  res.swapchains[id] = std::move(luna::vulkan::Swapchain(gpu, res.windows[id].surface(), false));
+  
+  return id;
+}
+
+LUNA_C_API auto destroy_window(int32_t handle) -> void {
+  LunaAssert(handle >= 0, "Attempting to use an invalid window."); 
+  auto& res = luna::vulkan::global_resources();
+  auto tmp1 = std::move(res.windows[handle]);
+  auto tmp2 = std::move(res.swapchains[handle]);
 }

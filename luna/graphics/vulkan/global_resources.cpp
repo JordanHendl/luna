@@ -8,6 +8,7 @@ namespace luna {
 namespace vulkan {
 constexpr auto MAX_OBJECT_AMT = 1024;
 constexpr auto MAX_CMD_AMT = 64;
+constexpr auto MAX_WINDOW_AMT = 10;
 
 auto create_pool(Device& device, int queue_family) -> vk::CommandPool {
   const vk::CommandPoolCreateFlags flags =
@@ -48,6 +49,8 @@ GlobalResources::GlobalResources() {
   this->pipelines.resize(MAX_OBJECT_AMT);
   this->render_passes.resize(MAX_OBJECT_AMT);
   this->cmds.resize(MAX_CMD_AMT);
+  this->swapchains.resize(MAX_WINDOW_AMT);
+  this->windows.resize(MAX_WINDOW_AMT);
 }
 
 GlobalResources::~GlobalResources() {

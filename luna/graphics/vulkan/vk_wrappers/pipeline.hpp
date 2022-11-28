@@ -19,7 +19,7 @@ class Pipeline {
   Pipeline(Pipeline&& mv);
   ~Pipeline();
   auto operator=(Pipeline&& mv) -> Pipeline&;
-  auto descriptor() -> Descriptor;
+  auto descriptor() -> int32_t;
   auto initialized() const -> bool { return this->m_pipeline; }
   auto device() const -> const Device& { return *this->m_device; }
   auto graphics() const -> bool { return this->m_render_pass; }

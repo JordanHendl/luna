@@ -8,9 +8,58 @@
 namespace luna {
 namespace gfx {
 
+struct WindowInfo {
+  std::string title;
+  size_t width;
+  size_t height;
+  bool borderless;
+  bool fullscreen;
+  bool resizable;
+  bool shown;
+  bool capture_mouse;
+  bool vsync;
+
+  WindowInfo(std::string_view name, size_t width = 1280, size_t height = 1024,
+             bool resizable = false) {
+    this->title = name;
+    this->width = width;
+    this->height = height;
+    this->resizable = resizable;
+    this->borderless = false;
+    this->fullscreen = false;
+    this->shown = true;
+    this->capture_mouse = false;
+    this->vsync = false;
+  }
+
+  WindowInfo(size_t width, size_t height) {
+    this->title = "Window";
+    this->width = width;
+    this->height = height;
+    this->borderless = false;
+    this->fullscreen = false;
+    this->resizable = false;
+    this->shown = true;
+    this->capture_mouse = false;
+    this->vsync = false;
+  }
+
+  WindowInfo() {
+    this->title = "Window";
+    this->width = 1280;
+    this->height = 1024;
+    this->borderless = false;
+    this->fullscreen = false;
+    this->resizable = false;
+    this->shown = true;
+    this->capture_mouse = false;
+    this->vsync = false;
+  }
+};
+
 enum class ImageFormat {
   RGBA8,
-  BRGA8,
+  BGRA8,
   RGBA32F,
   Depth,
 };

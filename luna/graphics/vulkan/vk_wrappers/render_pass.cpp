@@ -49,11 +49,12 @@ RenderPass::RenderPass() {
   this->m_area.extent.setHeight(1024);
 }
 
-RenderPass::RenderPass(Device& device, const gfx::RenderPassInfo& info) {
+RenderPass::RenderPass(Device& device, const gfx::RenderPassInfo& info, Swapchain* swap) {
   this->m_device = &device;
   this->m_area.extent.width = info.width;
   this->m_area.extent.height = info.height;
   this->m_current_framebuffer = 0;
+  this->m_swap = swap;
   this->parse_info(info);
   this->make_render_pass();
   this->make_images();
@@ -129,6 +130,7 @@ auto RenderPass::make_images() -> void {
   this->m_framebuffers.resize(NUM_BUFFERS);
   for (auto attach = 0u; attach < NUM_BUFFERS; attach++) {
     for (auto index = 0u; index < this->m_attachments.size(); index++) {
+      auto& attachment = this->m_attachments[index];
       auto usage_flag = vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
       format = this->m_attachments[index].format;
       info.width = this->m_area.extent.width;
@@ -137,6 +139,8 @@ auto RenderPass::make_images() -> void {
       info.is_cubemap = false;
       info.format = convert(format);
       layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+
       if (this->m_attachments[index].format == vk::Format::eD24UnormS8Uint) {
         usage_flag = vk::ImageUsageFlagBits::eDepthStencilAttachment |
                      vk::ImageUsageFlagBits::eSampled;
@@ -144,8 +148,13 @@ auto RenderPass::make_images() -> void {
         layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
       }
 
-      auto id = create_image(info, layout, usage_flag, nullptr);
-      this->m_images.push_back(id);
+      if(attachment.format == vk::Format::eR8G8B8A8Snorm && this->m_swap != nullptr && index == 0) { //@JHTODO FIX THIS!!!! How should we overwrite the color buffer to be used for the swapchain?
+        auto id = this->m_swap->image(attach);
+        this->m_images.push_back(id);
+      } else {
+        auto id = create_image(info, layout, usage_flag, nullptr);
+        this->m_images.push_back(id);
+      }
     }
   }
 }

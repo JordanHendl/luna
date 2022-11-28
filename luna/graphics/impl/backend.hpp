@@ -38,6 +38,12 @@ struct GraphicsImplementation {
     io::Symbol<void, std::string_view, int32_t> bind_image;
   } descriptor;
 
+  struct Window {
+    io::Symbol<int32_t, WindowInfo> make;
+    io::Symbol<void, int32_t> destroy;
+    io::Symbol<void, WindowInfo> update;
+  } window;
+  
   struct Pipeline {
     io::Symbol<int32_t, int32_t, PipelineInfo> make_render;
     io::Symbol<int32_t, PipelineInfo> make_compute;

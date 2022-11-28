@@ -11,11 +11,12 @@ namespace vulkan {
 class Device;
 class CommandBuffer;
 class Image;
+class Swapchain;
 
 class RenderPass {
  public:
   RenderPass();
-  RenderPass(Device& device, const gfx::RenderPassInfo& info);
+  RenderPass(Device& device, const gfx::RenderPassInfo& info, Swapchain* swap = nullptr);
   RenderPass(RenderPass&& mv);
   ~RenderPass();
   auto operator=(RenderPass&& mv) -> RenderPass&;
@@ -42,7 +43,7 @@ class RenderPass {
   inline auto current() const -> size_t { return this->m_current_framebuffer; }
   inline auto advance() -> void {
     this->m_current_framebuffer++;
-    if(this->m_current_framebuffer > this->m_framebuffers.size()) this->m_current_framebuffer = 0;
+    if(this->m_current_framebuffer >= this->m_framebuffers.size()) this->m_current_framebuffer = 0;
   }
   inline auto setCurrent(size_t val) -> void {
     this->m_current_framebuffer = val;
@@ -71,6 +72,7 @@ class RenderPass {
   vk::RenderPass m_pass;
   vk::Rect2D m_area;
   vk::SurfaceKHR m_surface;
+  vulkan::Swapchain* m_swap;
   size_t m_current_framebuffer;
   size_t m_num_binded_subpasses;
 

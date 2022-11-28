@@ -3,10 +3,10 @@ add_subdirectory(vulkan)
 find_package(SDL2 REQUIRED)
 set(gfx_files
   gfx.cpp
-  window.cpp
   renderable.cpp
   shader.cpp
-
+  asset_manager.cpp
+  
   material/material.cpp
   material/material_manager.cpp
 )

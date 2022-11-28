@@ -10,6 +10,7 @@ Swapchain::Swapchain(Device& device, vk::SurfaceKHR surface, bool vsync) {
   auto fence_info = vk::FenceCreateInfo();
   fence_info.setFlags(vk::FenceCreateFlagBits::eSignaled);
 
+  this->m_format = vk::Format::eB8G8R8A8Srgb;
   this->m_dependency = nullptr;
   this->m_current_frame = 0;
   this->m_skip_frame = false;
@@ -153,12 +154,12 @@ auto Swapchain::gen_images() -> void {
   info.format = convert(this->m_surface_format.format);
   info.num_mips = 1;
   info.layers = 1;
-
+  info.format = convert(this->m_format)   ;
   auto images = error(gpu.getSwapchainImagesKHR(this->m_swapchain, dispatch));
   this->m_images.reserve(images.size());
 
   for(auto& img : images) {
-    this->m_images.push_back(create_image(info, img));
+    this->m_images.push_back(create_image(info, vk::ImageLayout::ePresentSrcKHR, vk::ImageUsageFlagBits::eColorAttachment, img));
     //TODO translate it to correct format;
   }
 }

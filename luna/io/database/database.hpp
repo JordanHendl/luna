@@ -7,7 +7,7 @@ namespace luna {
 inline namespace v1 {
 /**
  * @brief Object to describe a database for the engine.
- * Database structure must contain a top-level database.json, the rest of the
+ * Database structure must contain a data/data.json, the rest of the
  * structure does not matter. This object uses the top-level JSON file to
  * determine the access to the rest of the structure.
  */
@@ -20,7 +20,7 @@ class Database {
     std::vector<std::string> roughness;
   };
 
-  explicit Database(std::string_view base_path);
+  Database(std::string_view base_path);
   ~Database();
   auto audio(std::string_view key) -> std::optional<std::string_view>;
   auto image(std::string_view key) -> std::optional<std::string_view>;

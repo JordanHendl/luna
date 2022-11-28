@@ -58,6 +58,9 @@ namespace gfx {
       imp.pipeline.make_compute = dlloader.symbol("make_compute_pipeline");
       imp.pipeline.destroy = dlloader.symbol("destroy_pipeline");
 
+      imp.descriptor.make = dlloader.symbol("make_descriptor");
+      imp.descriptor.destroy = dlloader.symbol("destroy_descriptor");
+
       imp.cmd.make = dlloader.symbol("make_command_buffer");
       imp.cmd.destroy = dlloader.symbol("destroy_command_buffer");
       imp.cmd.bind_descriptor = dlloader.symbol("set_descriptor");
@@ -65,6 +68,10 @@ namespace gfx {
       imp.cmd.end_recording = dlloader.symbol("end_command_buffer");
       imp.cmd.start_rp = dlloader.symbol("begin_render_pass");
       imp.cmd.end_rp = dlloader.symbol("end_render_pass");
+
+      imp.window.make = dlloader.symbol("make_window");
+      imp.window.destroy = dlloader.symbol("destroy_window");
+      
       imp.system.initialize();
     }
   }
