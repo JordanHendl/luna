@@ -1,11 +1,15 @@
 #pragma once
-#include "luna/core/engine.hpp"
-//#include "luna/core/asset_manager.h"
-//#include "luna/node/node.h"
-//#include "luna/node/scene.h"
-//#include "luna/node/texture2d.h"
-//#include "luna/types/image.h"
-//#include "luna/types/model.h"
+#ifdef _WIN32
+  #ifdef  LunaLibraryExport
+    #define LunaAPI __declspec(dllexport)
+  #else
+    #define LunaAPI __declspec(dllimport)  
+  #endif
+#elif defined __linux__
+    #define LunaAPI
+#endif
+
 namespace luna {
-  auto init_engine(const char* db_path) -> void;
+  LunaAPI auto init_engine(const char* db_path) -> void;
+  LunaAPI auto run() -> int;
 }

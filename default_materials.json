@@ -1,8 +1,0 @@
-{
-  "materials": {
-    "image2d": {
-      "vertex": "image2d.vert.spv",
-      "fragment": "image2d.frag.spv"
-    }
-  }
-}

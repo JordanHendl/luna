@@ -1,1 +1,0 @@
-add_library(vma_lib STATIC main.cpp)

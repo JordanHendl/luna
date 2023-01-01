@@ -1,1 +1,0 @@
-add_library(gfx_impl STATIC backend.cpp)

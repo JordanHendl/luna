@@ -2,17 +2,13 @@
 #include <any>
 #include <functional>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <typeinfo>
-#include <map>
 namespace luna {
 namespace cfg {
-enum class EventFlags {
-  None,
-  Require,
-  Defer
-};
+enum class EventFlags { None, Require, Defer };
 
 // Object for subscribing and publishing data.
 class Bus {
@@ -20,21 +16,25 @@ class Bus {
   inline Bus();
   inline ~Bus();
   template <typename Type>
-  inline auto subscribe(std::string_view name, void (*)(const Type&), EventFlags flags = EventFlags::None) -> void;
+  inline auto subscribe(std::string_view name, void (*)(const Type&),
+                        EventFlags flags = EventFlags::None) -> void;
   template <typename Type>
-  inline auto subscribe(std::string_view name, void (*)(Type), EventFlags flags = EventFlags::None) -> void;
+  inline auto subscribe(std::string_view name, void (*)(Type),
+                        EventFlags flags = EventFlags::None) -> void;
   template <typename Object, typename Type>
   inline auto subscribe(std::string_view name, Object* ref,
-                        void (Object::*raw_func)(const Type&), EventFlags flags = EventFlags::None) -> void;
+                        void (Object::*raw_func)(const Type&),
+                        EventFlags flags = EventFlags::None) -> void;
   template <typename Object, typename Type>
   inline auto subscribe(std::string_view name, Object* ref,
-                        void (Object::*raw_func)(Type), EventFlags flags = EventFlags::None) -> void;
+                        void (Object::*raw_func)(Type),
+                        EventFlags flags = EventFlags::None) -> void;
   template <typename Object, typename Type>
   inline auto enroll(std::string_view name, Object* ref,
-                      Type (Object::*raw_func)() const) -> void;
+                     Type (Object::*raw_func)() const) -> void;
   template <typename Object, typename Type>
   inline auto enroll(std::string_view name, Object* ref,
-                      const Type& (Object::*raw_func)() const) -> void;
+                     const Type& (Object::*raw_func)() const) -> void;
   template <typename Type>
   inline auto publish(std::string_view name, const Type& val) -> void;
 
@@ -50,23 +50,23 @@ class Bus {
   inline auto num_subscriptions(std::string_view key) -> size_t {
     auto& subs = this->get_subscriptions();
     auto iter = subs.find(std::string(key));
-    if(iter != subs.end()) return iter->second.size();
+    if (iter != subs.end()) return iter->second.size();
     return 0;
   }
 
-  inline auto ready() const -> bool { 
+  inline auto ready() const -> bool {
     auto rdy = true;
-    for(auto& map : this->m_required) {
-      for(auto& signal : map.second) {
-        if(!signal.second.first) rdy = false;
+    for (auto& map : this->m_required) {
+      for (auto& signal : map.second) {
+        if (!signal.second.first) rdy = false;
       }
     }
     return rdy;
   }
 
   inline auto reset() -> void {
-    for(auto& map : this->m_required) {
-      for(auto& signal : map.second) {
+    for (auto& map : this->m_required) {
+      for (auto& signal : map.second) {
         signal.second.first = false;
       }
     }
@@ -74,29 +74,30 @@ class Bus {
   static auto shutdown() -> void;
   static auto initialized() -> bool;
   class Subscriber {
-    public:
-      virtual ~Subscriber() {}
-      virtual auto receive(const std::any& val) -> void = 0;
+   public:
+    virtual ~Subscriber() {}
+    virtual auto receive(const std::any& val) -> void = 0;
 
-      virtual auto signal() -> void {
-        for(auto* ref : this->m_required_refs){
-          *ref = true;
+    virtual auto signal() -> void {
+      for (auto* ref : this->m_required_refs) {
+        *ref = true;
+      }
+    }
+
+    virtual auto add_required(bool* ref) -> void {
+      this->m_required_refs.push_back(ref);
+    }
+
+    virtual auto remove_required(bool* ref) -> void {
+      for (auto index = 0u; index < this->m_required_refs.size(); index++) {
+        if (this->m_required_refs[index] == ref) {
+          this->m_required_refs.erase(this->m_required_refs.begin() + index);
         }
       }
+    }
 
-      virtual auto add_required(bool* ref) -> void {
-        this->m_required_refs.push_back(ref);
-      }
-
-      virtual auto remove_required(bool* ref) -> void {
-        for(auto index = 0u; index < this->m_required_refs.size(); index++) {
-          if(this->m_required_refs[index] == ref) {
-            this->m_required_refs.erase(this->m_required_refs.begin() + index);
-          }
-        }
-      }
-    protected:
-      std::vector<bool*> m_required_refs;
+   protected:
+    std::vector<bool*> m_required_refs;
   };
 
   template <typename Type>
@@ -199,8 +200,8 @@ class Bus {
   template <typename Object, typename Type, bool Referenced>
   class MemberFunctionReferencedPublisher : public Publisher {
    public:
-    MemberFunctionReferencedPublisher(Object* ref,
-                            std::function<const Type&(Object*)> func_ref) {
+    MemberFunctionReferencedPublisher(
+        Object* ref, std::function<const Type&(Object*)> func_ref) {
       this->m_ref = ref;
       this->m_func = func_ref;
     }
@@ -224,25 +225,33 @@ class Bus {
   using KeyMap = std::unordered_map<std::string, TypeMap>;
   static auto get_subscriptions() -> KeyMap&;
 
-  // Local storage of typeid : Iterator to the type map. This is so we can remove from the global maps on deconstructor.
+  // Local storage of typeid : Iterator to the type map. This is so we can
+  // remove from the global maps on deconstructor.
   using LocalIterMap = std::multimap<size_t, TypeMap::iterator>;
 
-  /** Same as LocalIterMap, but for required entries to store a flag. Flags MUST be stored locally, as they are unique to each bus, but...
-   * this means that on a publish, each event bus can access the underlying flags of each other event bus. So, to accomplish this, we store
-   * flags locally in this map, and then add references to them to the matching subscriber (see @Subscriber), so that the subscriber can handle 
-   * pushing those values when they get signalled, and each bus can reset it manually (see @Bus::reset). When the bus deconstructs, it manually removes
-   * the 'required' references from the specified subscribtions.
+  /** Same as LocalIterMap, but for required entries to store a flag. Flags MUST
+   * be stored locally, as they are unique to each bus, but... this means that
+   * on a publish, each event bus can access the underlying flags of each other
+   * event bus. So, to accomplish this, we store flags locally in this map, and
+   * then add references to them to the matching subscriber (see @Subscriber),
+   * so that the subscriber can handle pushing those values when they get
+   * signalled, and each bus can reset it manually (see @Bus::reset). When the
+   * bus deconstructs, it manually removes the 'required' references from the
+   * specified subscribtions.
    */
-  using LocalRequiredIterMap = std::multimap<size_t, std::pair<bool, TypeMap::iterator>>;
+  using LocalRequiredIterMap =
+      std::multimap<size_t, std::pair<bool, TypeMap::iterator>>;
 
-  /** Local storage of keys : map of (typeid : global map iterator). Used so object can know what to destroy when deconstructing.
+  /** Local storage of keys : map of (typeid : global map iterator). Used so
+   * object can know what to destroy when deconstructing.
    */
   using LocalKeyMap = std::unordered_map<std::string, LocalIterMap>;
 
   /** Same as above, but for required keys.
    */
-  using LocalRequiredKeyMap = std::unordered_map<std::string, LocalRequiredIterMap>;
-  
+  using LocalRequiredKeyMap =
+      std::unordered_map<std::string, LocalRequiredIterMap>;
+
   LocalKeyMap m_map;
   LocalRequiredKeyMap m_required;
 
@@ -259,13 +268,13 @@ class Bus {
 
 Bus::Bus() {}
 Bus::~Bus() {
-  if(!this->initialized()) return;
+  if (!this->initialized()) return;
 
   auto& subs = this->get_subscriptions();
   for (auto& iter : this->m_map) {
     auto& key = iter.first;
     auto global_map = subs.find(key);
-    if(global_map == subs.end()) return;
+    if (global_map == subs.end()) return;
     for (auto& value : iter.second) {
       global_map->second.erase(value.second);
     }
@@ -274,7 +283,7 @@ Bus::~Bus() {
   for (auto& iter : this->m_required) {
     auto& key = iter.first;
     auto global_map = subs.find(key);
-    if(global_map == subs.end()) return;
+    if (global_map == subs.end()) return;
     for (auto& value : iter.second) {
       value.second.second->second->remove_required(&value.second.first);
       global_map->second.erase(value.second.second);
@@ -284,51 +293,59 @@ Bus::~Bus() {
 }
 
 template <typename Type>
-auto Bus::subscribe(std::string_view name, void (*raw_func)(const Type&), EventFlags flags)
-    -> void {
+auto Bus::subscribe(std::string_view name, void (*raw_func)(const Type&),
+                    EventFlags flags) -> void {
   using Subscriber = Bus::FunctionReferenceSubscriber<Type>;
   auto func = std::function<void(const Type&)>(raw_func);
   auto& sub = this->get_subscriptions();
-  auto& key_map = sub[name.begin()];  // Create if doesn't exist.
+  auto& key_map = sub[name.data()];  // Create if doesn't exist.
   auto iter = key_map.insert(
       {typeid(const Type&).hash_code(), std::make_shared<Subscriber>(func)});
 
-  if(flags == EventFlags::Require) {
-    auto req_iter = this->m_required[name.begin()].insert({typeid(const Type&).hash_code(), {false, iter}});
+  if (flags == EventFlags::Require) {
+    auto req_iter = this->m_required[name.data()].insert(
+        {typeid(const Type&).hash_code(), {false, iter}});
     auto* ref = &req_iter->second.first;
     iter->second->add_required(ref);
-  } else this->m_map[name.begin()].insert({typeid(Type).hash_code(), iter});
+  } else
+    this->m_map[name.data()].insert({typeid(Type).hash_code(), iter});
 }
 
 template <typename Type>
-auto Bus::subscribe(std::string_view name, void (*raw_func)(Type), EventFlags flags) -> void {
+auto Bus::subscribe(std::string_view name, void (*raw_func)(Type),
+                    EventFlags flags) -> void {
   using Subscriber = Bus::FunctionSubscriber<Type>;
   auto func = std::function<void(Type)>(raw_func);
   auto& sub = this->get_subscriptions();
-  auto& key_map = sub[name.begin()];  // Create if doesn't exist.
+  auto& key_map = sub[name.data()];  // Create if doesn't exist.
   auto iter = key_map.insert(
       {typeid(Type).hash_code(), std::make_shared<Subscriber>(func)});
-  if(flags == EventFlags::Require) {
-    auto req_iter = this->m_required[name.begin()].insert({typeid(Type).hash_code(), {false, iter}});
+  if (flags == EventFlags::Require) {
+    auto req_iter = this->m_required[name.data()].insert(
+        {typeid(Type).hash_code(), {false, iter}});
     auto* ref = &req_iter->second.first;
     iter->second->add_required(ref);
-  } else this->m_map[name.begin()].insert({typeid(Type).hash_code(), iter});
+  } else
+    this->m_map[name.data()].insert({typeid(Type).hash_code(), iter});
 }
 
 template <typename Object, typename Type>
 auto Bus::subscribe(std::string_view name, Object* ref,
-                    void (Object::*raw_func)(const Type&), EventFlags flags) -> void {
+                    void (Object::*raw_func)(const Type&), EventFlags flags)
+    -> void {
   using Subscriber = Bus::MemberFunctionReferenceSubscriber<Object, Type>;
   auto func = std::function<void(Object*, const Type&)>(raw_func);
   auto& sub = this->get_subscriptions();
-  auto& key_map = sub[name.begin()];  // Create if doesn't exist.
-  auto iter = key_map.insert(
-      {typeid(const Type&).hash_code(), std::make_shared<Subscriber>(ref, func)});
-  if(flags == EventFlags::Require) {
-    auto req_iter = this->m_required[name.begin()].insert({typeid(const Type&).hash_code(), {false, iter}});
+  auto& key_map = sub[name.data()];  // Create if doesn't exist.
+  auto iter = key_map.insert({typeid(const Type&).hash_code(),
+                              std::make_shared<Subscriber>(ref, func)});
+  if (flags == EventFlags::Require) {
+    auto req_iter = this->m_required[name.data()].insert(
+        {typeid(const Type&).hash_code(), {false, iter}});
     auto* ref = &req_iter->second.first;
     iter->second->add_required(ref);
-  } else this->m_map[name.begin()].insert({typeid(Type).hash_code(), iter});
+  } else
+    this->m_map[name.data()].insert({typeid(Type).hash_code(), iter});
 }
 
 template <typename Object, typename Type>
@@ -337,40 +354,43 @@ auto Bus::subscribe(std::string_view name, Object* ref,
   using Sub = Bus::MemberFunctionSubscriber<Object, Type>;
   auto func = std::function<void(Object*, Type)>(raw_func);
   auto& sub = this->get_subscriptions();
-  auto& key_map = sub[name.begin()];  // Create if doesn't exist.
+  auto& key_map = sub[name.data()];  // Create if doesn't exist.
   auto iter = key_map.insert(
       {typeid(Type).hash_code(), std::make_shared<Sub>(ref, func)});
-  if(flags == EventFlags::Require) {
-    auto req_iter = this->m_required[name.begin()].insert({typeid(Type).hash_code(), {false, iter}});
+  if (flags == EventFlags::Require) {
+    auto req_iter = this->m_required[name.data()].insert(
+        {typeid(Type).hash_code(), {false, iter}});
     auto* ref = &req_iter->second.first;
     iter->second->add_required(ref);
-  } else this->m_map[name.begin()].insert({typeid(Type).hash_code(), iter});
+  } else
+    this->m_map[name.data()].insert({typeid(Type).hash_code(), iter});
 }
 
 template <typename Object, typename Type>
 auto Bus::enroll(std::string_view name, Object* ref,
-                  Type (Object::*raw_func)() const) -> void {
+                 Type (Object::*raw_func)() const) -> void {
   using Pub = Bus::MemberFunctionPublisher<Object, Type, false>;
   auto func = std::function<Type(Object*)>(raw_func);
   auto& pub = this->m_publishers;
-  auto& key_map = pub[name.begin()];  // Create if doesn't exist.
+  auto& key_map = pub[name.data()];  // Create if doesn't exist.
   key_map.insert({typeid(Type).hash_code(), std::make_shared<Pub>(ref, func)});
 }
 
 template <typename Object, typename Type>
 auto Bus::enroll(std::string_view name, Object* ref,
-                  const Type& (Object::*raw_func)() const) -> void {
+                 const Type& (Object::*raw_func)() const) -> void {
   using Pub = Bus::MemberFunctionReferencedPublisher<Object, Type, true>;
   auto func = std::function<const Type&(Object*)>(raw_func);
   auto& pub = this->m_publishers;
-  auto& key_map = pub[name.begin()];  // Create if doesn't exist.
-  key_map.insert({typeid(const Type&).hash_code(), std::make_shared<Pub>(ref, func)});
+  auto& key_map = pub[name.data()];  // Create if doesn't exist.
+  key_map.insert(
+      {typeid(const Type&).hash_code(), std::make_shared<Pub>(ref, func)});
 }
 
 template <typename Type>
 auto Bus::publish(std::string_view name, const Type& val) -> void {
   auto& sub_map = this->get_subscriptions();
-  auto key_iter = sub_map.find(name.begin());
+  auto key_iter = sub_map.find(name.data());
   if (key_iter != sub_map.end()) {
     auto& key_map = key_iter->second;
     auto id = static_cast<size_t>(typeid(const Type&).hash_code());
@@ -384,7 +404,7 @@ auto Bus::publish(std::string_view name, const Type& val) -> void {
 template <typename Type>
 auto Bus::publish_by_val(std::string_view name, Type val) -> void {
   auto& sub_map = this->get_subscriptions();
-  auto key_iter = sub_map.find(name.begin());
+  auto key_iter = sub_map.find(name.data());
   if (key_iter != sub_map.end()) {
     auto& key_map = key_iter->second;
     auto id = static_cast<size_t>(typeid(Type).hash_code());
@@ -414,5 +434,5 @@ auto Bus::publish() -> void {
     }
   }
 }
-}
-}
+}  // namespace cfg
+}  // namespace luna

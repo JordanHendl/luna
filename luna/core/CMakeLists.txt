@@ -1,7 +1,8 @@
-find_package(SDL2 REQUIRED)
 set(luna_files
   luna.cpp
-  engine.cpp
 )
 add_library(luna SHARED ${luna_files})
-target_link_libraries(luna gfx config plugin io SDL2::SDL2)
+target_link_libraries(luna config plugin io)
+
+add_executable(luna_runtime main.cpp)
+target_link_libraries(luna_runtime PRIVATE luna)
